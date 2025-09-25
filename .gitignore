@@ -12,3 +12,6 @@ __pycache__/
 
 # Sensitive data
 .env
+
+# misc
+btcusdt_1h_historical_data.csv
