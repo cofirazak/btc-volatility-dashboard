@@ -30,9 +30,9 @@ CANDLE_COLUMNS = [
 
 # --- Functions ---
 
-def fetch_historical_klines(start_dt: dt, end_dt: dt) -> pd.DataFrame:
+def fetch_klines(start_dt: dt, end_dt: dt) -> pd.DataFrame:
     """
-    Fetches historical k-line (candlestick) data from Binance in a given date range.
+    Fetches k-line (candlestick) data from Binance in a given date range.
 
     This function handles pagination by repeatedly calling the Binance API
     to fetch data in chunks until the entire requested period is covered.
@@ -103,60 +103,6 @@ def fetch_historical_klines(start_dt: dt, end_dt: dt) -> pd.DataFrame:
     # Remove duplicates and sort
     df_candles.drop_duplicates(subset=['open_time'], inplace=True)
     df_candles.sort_values(by='open_time', inplace=True)
+    df_candles['symbol'] = SYMBOL
     
     return df_candles
-
-def fetch_latest_klines(hours: int = 1) -> pd.DataFrame:
-    """
-    Fetches the latest k-line data for the last N hours.
-
-    This function makes a single API call to get the most recent data.
-
-    Args:
-        hours: The number of recent hours to fetch data for.
-
-    Returns:
-        A pandas DataFrame with the latest k-line data.
-    """
-    end_dt = dt.now()
-    start_dt = end_dt - timedelta(hours=hours)
-    
-    start_time_ms = int(start_dt.timestamp() * 1000)
-    end_time_ms = int(end_dt.timestamp() * 1000)
-
-    payload_params = {
-        'symbol': SYMBOL,
-        'interval': INTERVAL,
-        'startTime': start_time_ms,
-        'endTime': end_time_ms,
-        'limit': KLINES_LIMIT 
-    }
-
-    print(f"Fetching latest {hours} hour(s) of data for {SYMBOL}")
-
-    try:
-        response = requests.get(BASE_URL, params=payload_params)
-        response.raise_for_status()
-        data = response.json()
-
-        if not data:
-            print("No new data found.")
-            return pd.DataFrame(columns=[col for col in CANDLE_COLUMNS if col != 'unused_field_ignore'])
-
-        df_candles = pd.DataFrame(data, columns=CANDLE_COLUMNS)
-        df_candles.drop(columns=['unused_field_ignore'], inplace=True)
-        
-        # Convert columns to numeric types, preserving original dtype if conversion fails.
-        # This explicit loop replaces the deprecated `errors='ignore'` pattern.
-        for col in df_candles.columns:
-            try:
-                df_candles[col] = pd.to_numeric(df_candles[col])
-            except ValueError:
-                # If conversion fails, log a warning and keep the original data type.
-                print(f"Warning: Column '{col}' contains non-numeric data and could not be converted.")
-        
-        return df_candles
-
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
-        return pd.DataFrame(columns=[col for col in CANDLE_COLUMNS if col != 'unused_field_ignore'])

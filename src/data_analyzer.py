@@ -1,3 +1,5 @@
+# data_analyzer.py
+
 """
 This module provides functions for analyzing and validating time-series data.
 """
