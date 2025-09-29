@@ -29,6 +29,7 @@ if __name__ == "__main__":
 
     start_date = None
     end_date = dt.now().replace(minute=0, second=0, microsecond=0) - relativedelta(hours=1)
+    expected_start_date = dt(year=end_date.year - 1, month=1, day=1, hour=11, minute=0, second=0) - relativedelta(days=1)
 
     print("--- Starting database integrity audit ---")
     # Creating sqlalchemy engine to connect to the database.
@@ -52,13 +53,17 @@ if __name__ == "__main__":
 
                 print(f"Statistics from DB: Rows={db_stats.total_rows}, Expected={int(expected_hours)}")
 
-                if int(db_stats.total_rows) == int(expected_hours):
+                # Compare the date (without time) of the first record in the DB with what we expect
+                if min_dt.date() != expected_start_date.date():
+                    print(f"❗ Data inconsistency detected: First record is from {min_dt.date()}, but expected {expected_start_date.date()}.")
+                    is_consistent = False
+                elif int(db_stats.total_rows) != int(expected_hours):
+                    print(f"❗ Data inconsistency detected: Found {db_stats.total_rows} rows, but expected ~{int(expected_hours)} (missing values).")
+                    is_consistent = False
+                else:
                     is_consistent = True
                     start_date = max_dt + relativedelta(hours=1)
                     print("✅ The data has been approved. Starting the delta upload.")
-                else:
-                    is_consistent = False
-                    print("❗ Data inconsistency detected (missing values).")
             else:
                 is_consistent = False
                 print("The table in the database is empty.")
@@ -69,7 +74,8 @@ if __name__ == "__main__":
 
     if not is_consistent:
         print("Launching the full historical download.")
-        start_date = dt(year=end_date.year - 1, month=1, day=1)
+        print("Data is inconsistent or missing. Planning a full historical backfill.")
+        start_date = expected_start_date
 
     if start_date >= end_date:
         print("✅ Database is already up to date. No new data to fetch.")
