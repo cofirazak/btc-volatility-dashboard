@@ -13,6 +13,15 @@ __pycache__/
 # Sensitive data
 .env
 
+# Docker
+.dockerignore
+docker-compose.override.yml
+docker-compose.yml.local
+
+# macOS
+.DS_Store
+
 # misc
 btcusdt_1h_historical_data.csv
 .cursor-rules
+logs/

@@ -8,7 +8,7 @@ from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
 from binance_client import fetch_klines
 from data_analyzer import analyze_data_gaps
-from sqlalchemy import create_engine, exc
+from sqlalchemy import create_engine
 from database_utils import upsert_to_mysql
 import os
 from dotenv import load_dotenv
@@ -91,6 +91,6 @@ if __name__ == "__main__":
         analyze_data_gaps(data_to_load, start_date, end_date)
 
         # Write new data to the database.
-        upsert_to_mysql(data_to_load, 'klines_hourly', engine)
+        upsert_to_mysql(df=data_to_load, table_name='klines_hourly', engine=engine)
     else:
         print("No new data to save.")
