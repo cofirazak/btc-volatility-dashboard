@@ -1,12 +1,12 @@
-# Используем чистый, легкий образ Python
+# Use a clean, lightweight Python image
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Копируем файл с зависимостями и устанавливаем их
+# Copy the dependencies file and install them
 COPY scripts-requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем ваш исходный код и .env файл, чтобы они были доступны внутри контейнера
+# Copy your source code and .env file to make them available inside the container
 COPY ./src ./src
 COPY .env .
