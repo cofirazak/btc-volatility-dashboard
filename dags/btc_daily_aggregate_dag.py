@@ -20,5 +20,6 @@ with DAG(
         command='python src/session_aggregator.py',
         auto_remove='success',
         docker_url="unix://var/run/docker.sock",
-        network_mode="host"
+        network_mode="host",
+        mount_tmp_dir=False
     )
