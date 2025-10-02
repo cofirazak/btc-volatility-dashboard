@@ -32,7 +32,7 @@ def analyze_data_gaps(historical_data: pd.DataFrame, start_date: dt, end_date: d
     print(f"To:   {end_date}\n")
     
     ideal_range_naive = pd.date_range(start=start_date, end=end_date, freq='h')
-    ideal_range = ideal_range_naive.tz_localize(tzlocal()).tz_convert('UTC')
+    ideal_range = ideal_range_naive.tz_convert('UTC')
 
     # 3. Find the difference between the ideal range and your data
     # Convert to sets for a fast difference operation

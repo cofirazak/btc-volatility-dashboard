@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from database_utils import upsert_to_mysql
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
-from src.metrics_calculator import calculate_session_metrics
+from metrics_calculator import calculate_session_metrics
 
 
 # --- Configuration and Connection ---

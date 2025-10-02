@@ -56,7 +56,7 @@ def fetch_klines(start_dt: dt, end_dt: dt) -> pd.DataFrame:
 
     print(f"Fetching data for {SYMBOL} from {start_dt.strftime('%Y-%m-%d %H:%M:%S')} ({int(start_dt.timestamp())}) to {end_dt.strftime('%Y-%m-%d %H:%M:%S')} ({int(start_dt.timestamp())})")
 
-    while start_time_ms < end_time_ms:
+    while start_time_ms <= end_time_ms:
         payload_params['startTime'] = start_time_ms
         # The API endpoint is inclusive for both startTime and endTime.
         payload_params['endTime'] = end_time_ms

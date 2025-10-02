@@ -5,6 +5,7 @@ by fetching it from the Binance API via the binance_client module.
 """
 
 from datetime import datetime as dt
+from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 from binance_client import fetch_klines
 from data_analyzer import analyze_data_gaps
@@ -27,9 +28,13 @@ if __name__ == "__main__":
     # The script automatically finds the last entry in the database and
     # starts fetching from there, ensuring data integrity.
 
+    MOSCOW = ZoneInfo("Europe/Moscow")
     start_date = None
-    end_date = dt.now().replace(minute=0, second=0, microsecond=0) - relativedelta(hours=1)
-    expected_start_date = dt(year=end_date.year - 1, month=1, day=1, hour=11, minute=0, second=0) - relativedelta(days=1)
+    # Use timezone-aware datetime objects throughout the script to avoid ambiguity.
+    # Fetch up to the beginning of the previous hour.
+    end_date = dt.now(MOSCOW).replace(minute=0, second=0, microsecond=0) - relativedelta(hours=1)
+    # The expected start is roughly one year before the session start time (11:00 MSK).
+    expected_start_date = dt(year=end_date.year - 1, month=1, day=1, hour=11, minute=0, second=0, tzinfo=MOSCOW) - relativedelta(days=1)
 
     print("--- Starting database integrity audit ---")
     # Creating sqlalchemy engine to connect to the database.
@@ -45,8 +50,9 @@ if __name__ == "__main__":
             # 2. Analyze the result.
             if db_stats and db_stats.total_rows > 0:
                 # If the table is not empty, conduct a full "check-up".
-                min_dt = dt.fromtimestamp(db_stats.min_ts / 1000)
-                max_dt = dt.fromtimestamp(db_stats.max_ts / 1000)
+                # Convert timestamps from the DB (which are in UTC) into timezone-aware Moscow datetime objects.
+                min_dt = dt.fromtimestamp(db_stats.min_ts / 1000, MOSCOW)
+                max_dt = dt.fromtimestamp(db_stats.max_ts / 1000, MOSCOW)
 
                 # How many hours should there be between the minimum and maximum?
                 expected_hours = (max_dt - min_dt).total_seconds() / 3600 + 1
@@ -77,7 +83,7 @@ if __name__ == "__main__":
         print("Data is inconsistent or missing. Planning a full historical backfill.")
         start_date = expected_start_date
 
-    if start_date >= end_date:
+    if start_date > end_date:
         print("✅ Database is already up to date. No new data to fetch.")
         exit()
 
