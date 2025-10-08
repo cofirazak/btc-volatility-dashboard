@@ -25,3 +25,4 @@ docker-compose.yml.local
 btcusdt_1h_historical_data.csv
 .cursor-rules
 logs/
+tmp_folder_*/
